@@ -1,0 +1,87 @@
+version: '3.8'
+services:
+  registry-discovery:
+    container_name: id-eureka
+    build:
+      context: ./infrastructuredomain/eureka
+    image: digitalthinking/microservice-docker-eureka:0.0.1-SNAPSHOT
+    ports:
+      - 8761:8761
+    environment:
+      - JAVA_OPTS=
+        -Xms256M
+        -Xmx256M
+
+  administation:
+    container_name: id-admin
+    build:
+      context: ./infrastructuredomain/adminserv
+    image: digitalthinking/microservice-docker-adminserv:0.0.1-SNAPSHOT
+    environment:
+      - JAVA_OPTS=
+        -Xms256M
+        -Xmx256M
+        -DEUREKA_SERVER=http://registry-discovery:8761/eureka/
+    depends_on:
+      - registry-discovery
+    ports:
+      - 8762:8762
+
+  facturacion-module:
+    container_name: id-facturacion-module
+    build:
+      context: ./bussinesdomain/facturacion
+    image: digitalthinking/microservice-docker-facturacion:0.0.1-SNAPSHOT
+    environment:
+      - JAVA_OPTS=
+        - Xms256M
+        - Xmx256M
+        - DEUREKA_SERVER=http://registry-discovery:8761/eureka/
+    depends_on:
+      - registry-discovery
+    ports:
+      - 8083:8083
+
+  transaccion-module:
+    container_name: id-transaccion-module
+    build:
+      context: ./bussinesdomain/transaccion
+    image: digitalthinking/microservice-docker-transaccion:0.0.1-SNAPSHOT
+    environment:
+      - JAVA_OPTS=
+        -Xms256M
+        -Xmx256M
+        -DEUREKA_SERVER=http://registry-discovery:8761/eureka/
+    depends_on:
+      - registry-discovery
+    ports:
+      - 8092:8092
+
+  postgres_db:
+    container_name: postgres
+    image: postgres:latest
+    ports:
+      - 3432:5432
+    volumes:
+
+      - ./dbfiles:/docker-entrypoint-initdb.d
+      - /var/lib/postgres_data:/var/lib/postgresql/data
+    environment:
+
+      POSTGRES_USER: postgres
+
+      POSTGRES_PASSWORD: qwerty
+
+      POSTGRES_DB: postgres
+
+  pgadmin4:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "qwerty"
+    ports:
+      - 80:80
+    depends_on:
+      - postgres_db
+

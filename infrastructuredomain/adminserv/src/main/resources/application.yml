@@ -1,0 +1,25 @@
+server:
+  port: 8762
+spring:
+  application:
+    name: admin-server
+eureka:
+  instance:
+    lease-renewal-interval-in-seconds: 10
+    health-check-url-path: /actuator/health
+    metadata-map:
+      startup:
+  client:
+    register-with-eureka: true
+    registry-fetch-interval-seconds: 5
+    service-url:
+      defaultZone: http://registry-discovery:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: ALWAYS
